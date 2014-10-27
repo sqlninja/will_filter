@@ -283,6 +283,10 @@ module WillFilter
     def per_page
       @per_page ||= default_per_page
     end
+
+    def show_all?
+      per_page == 'all'
+    end
   
     def page
       @page ||= 1
@@ -890,7 +894,9 @@ module WillFilter
           recs = Kaminari.paginate_array(recs)
         end  
 
-        recs = recs.page(page).per(per_page)
+        count = show_all? ? recs.count : per_page
+        recs = recs.page(page).per(count)
+        
         recs.wf_filter = self
         recs
       end
