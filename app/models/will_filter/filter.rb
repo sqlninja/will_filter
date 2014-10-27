@@ -882,7 +882,7 @@ module WillFilter
         handle_empty_filter! 
         recs = model_class.where(sql_conditions).order(order_clause)
         inner_joins.each do |inner_join|
-          recs = recs.joins(association_name(inner_join))
+          recs = recs.joins(association_name(inner_join)).uniq
         end
 
         if custom_conditions?
