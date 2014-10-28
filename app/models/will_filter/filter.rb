@@ -582,6 +582,10 @@ module WillFilter
       self
     end
     alias_method :from_params, :deserialize_from_params
+
+    def merge_params(new_params)
+      from_params(to_params.merge(new_params))
+    end
     
     #############################################################################
     # Validations 
