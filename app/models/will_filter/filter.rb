@@ -283,6 +283,10 @@ module WillFilter
     def per_page
       @per_page ||= default_per_page
     end
+
+    def show_all?
+      per_page == 'all'
+    end
   
     def page
       @page ||= 1
@@ -408,8 +412,7 @@ module WillFilter
       condition_key = condition_key.to_sym if condition_key.is_a?(String)
       
       unless valid_operator?(condition_key, operator_key)
-        opers = definition[condition_key]
-        operator_key = first_sorted_operator(opers)
+        return;
       end
       
       condition = WillFilter::FilterCondition.new(self, condition_key, operator_key, container_for(condition_key, operator_key), values)
@@ -578,6 +581,10 @@ module WillFilter
       self
     end
     alias_method :from_params, :deserialize_from_params
+
+    def merge_params(new_params)
+      from_params(to_params.merge(new_params))
+    end
     
     #############################################################################
     # Validations 
@@ -882,7 +889,7 @@ module WillFilter
         handle_empty_filter! 
         recs = model_class.where(sql_conditions).order(order_clause)
         inner_joins.each do |inner_join|
-          recs = recs.joins(association_name(inner_join))
+          recs = recs.joins(association_name(inner_join)).uniq
         end
 
         if custom_conditions?
@@ -890,7 +897,9 @@ module WillFilter
           recs = Kaminari.paginate_array(recs)
         end  
 
-        recs = recs.page(page).per(per_page)
+        count = show_all? ? recs.count : per_page
+        recs = recs.page(page).per(count)
+        
         recs.wf_filter = self
         recs
       end
